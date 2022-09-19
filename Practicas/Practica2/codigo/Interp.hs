@@ -10,5 +10,11 @@ instance Show Value where
     show (BoolV b) = show b
 
 interp :: ASA -> Value
--- Aquí va tu código.
-
+interp (Num(a)) = NumV(a)
+interp (Boolean(a)) = BoolV(b)
+interp (Suma (Num(a)) (Num(b))) = NumV(a+b)
+interp (Resta (Num(a)) (Num(b))) = NumV(a-b)
+interp (Mult (Num(a)) (Num(b))) = NumV(a*b)
+interp (Div (Num(a)) (Num(b))) = NumV(div a b)
+interp (Add1 (Num(a))) = NumV(a+1)
+interp (Sub1 (Num(a))) = NumV(a-1)
