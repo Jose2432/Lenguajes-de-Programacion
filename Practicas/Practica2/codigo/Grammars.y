@@ -11,7 +11,7 @@ import Data.Char
 %token
       int             { TokenNum $$ }
       bool            { TokenBool $$ }
-  --    op              { TokenOp $$ }
+      op              { TokenOp $$ }
       '('             { TokenPA }
       ')'             { TokenPC }
       '+'             { TokenSuma }
@@ -32,8 +32,8 @@ ASA : int                  { Num $1 }
     | '(' '/' ASA ASA ')'  { Div $3 $4 }
     | '(' 'a' ASA ')'      { Add1 $3 }
     | '(' 's' ASA ')'      { Sub1 $3 }
---    | op ASA               { Op $2 }
-    | bool ASA             { Boolean $2 }
+    | op                   { Op $1 }
+    | bool                 { Boolean $1 }
 
 {
 
@@ -43,7 +43,7 @@ parseError _ = error "Parse error"
 
 data ASA = Num Int
          | Boolean Bool
---         | Op String [ASA]
+         | Op String 
          | Suma ASA ASA
          | Resta ASA ASA
          | Mult ASA ASA
@@ -54,7 +54,7 @@ data ASA = Num Int
 
 data Token = TokenNum Int
            | TokenBool Bool
---           | TokenOp String
+           | TokenOp String
            | TokenPA
            | TokenPC
            | TokenSuma
