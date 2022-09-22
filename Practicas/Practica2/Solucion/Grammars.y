@@ -14,7 +14,6 @@ import Data.Char
       op              { TokenOp $$ }
       '('             { TokenPA }
       ')'             { TokenPC }
-      '+'             { TokenSuma $$ }
 
 %%
 
@@ -23,16 +22,9 @@ import Data.Char
 ASA : int                  { Num $1 }
     | bool                 { Boolean $1 }
     | '(' op LASA ')'      { Op $2 $3 }
-    | '(' '+' LASA ')'  { Suma $2 $3}
 
 LASA : ASA         { [$1] }
      | ASA LASA    { $1:$2 }
-
---bool : '#t'   { $1 }
---     | '#f'   { $1 }
-
---op : '+'    { $1 }
---   | '-'    { $1 }
 
 {
 
@@ -43,7 +35,6 @@ parseError _ = error "Parse error"
 data ASA = Num Int
          | Boolean Bool
          | Op String [ASA]
-         | Suma String [ASA]
           deriving(Show)
 
 data Token = TokenNum Int
@@ -51,7 +42,6 @@ data Token = TokenNum Int
            | TokenOp String
            | TokenPA
            | TokenPC
-           | TokenSuma String
            deriving(Show)
 
 lexer :: String -> [Token]
@@ -59,7 +49,20 @@ lexer [] = []
 lexer (' ' : xs) = lexer xs
 lexer ('(' : xs) = TokenPA:(lexer xs)
 lexer (')' : xs) = TokenPC:(lexer xs)
---lexer ('+' : xs) = TokenSuma:(lexer xs)
+lexer ('+' : xs) = TokenOp("+"):(lexer xs)
+lexer ('-' : xs) = TokenOp("-"):(lexer xs)
+lexer ('*' : xs) = TokenOp("*"):(lexer xs)
+lexer ('/' : xs) = TokenOp("/"):(lexer xs)
+lexer ('a':'d':'d':'1':xs) = TokenOp("add1"):(lexer xs)
+lexer ('s':'u':'b':'1':xs) = TokenOp("sub1"):(lexer xs)
+lexer ('<' : xs) = TokenOp("<"):(lexer xs)
+lexer ('>' : xs) = TokenOp(">"):(lexer xs)
+lexer ('=' : xs) = TokenOp("="):(lexer xs)
+lexer ('n':'o':'t':xs) = TokenOp("not"):(lexer xs)
+lexer ('o':'r': xs) = TokenOp("or"):(lexer xs)
+lexer ('a':'n':'d': xs) = TokenOp("and"):(lexer xs)
+lexer ('#':'t': xs) = TokenBool(True):(lexer xs)
+lexer ('#':'f': xs) = TokenBool(False):(lexer xs)
 lexer (x:xs)
     | isDigit x = lexNum (x:xs)
 
