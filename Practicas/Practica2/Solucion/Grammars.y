@@ -14,26 +14,25 @@ import Data.Char
       op              { TokenOp $$ }
       '('             { TokenPA }
       ')'             { TokenPC }
-      '+'             { TokenSuma }
-      '-'             { TokenResta }
-      '*'             { TokenMult }
-      '/'             { TokenDiv }
-      'a'             { TokenAdd }
-      's'             { TokenSub }
+      '+'             { TokenSuma $$ }
 
 %%
 
 -- DEFINE AQUÍ TUS GRAMÁTICAS PARA EL PARSER. */
 
 ASA : int                  { Num $1 }
-    | '(' '+' ASA ASA ')'  { Suma $3 $4 }
-    | '(' '-' ASA ASA ')'  { Resta $3 $4 }
-    | '(' '*' ASA ASA ')'  { Mult $3 $4 }
-    | '(' '/' ASA ASA ')'  { Div $3 $4 }
-    | '(' 'a' ASA ')'      { Add1 $3 }
-    | '(' 's' ASA ')'      { Sub1 $3 }
-    | op                   { Op $1 }
     | bool                 { Boolean $1 }
+    | '(' op LASA ')'      { Op $2 $3 }
+    | '(' '+' LASA ')'  { Suma $2 $3}
+
+LASA : ASA         { [$1] }
+     | ASA LASA    { $1:$2 }
+
+--bool : '#t'   { $1 }
+--     | '#f'   { $1 }
+
+--op : '+'    { $1 }
+--   | '-'    { $1 }
 
 {
 
@@ -43,13 +42,8 @@ parseError _ = error "Parse error"
 
 data ASA = Num Int
          | Boolean Bool
-         | Op String 
-         | Suma ASA ASA
-         | Resta ASA ASA
-         | Mult ASA ASA
-         | Div ASA ASA
-         | Add1 ASA
-         | Sub1 ASA
+         | Op String [ASA]
+         | Suma String [ASA]
           deriving(Show)
 
 data Token = TokenNum Int
@@ -57,12 +51,7 @@ data Token = TokenNum Int
            | TokenOp String
            | TokenPA
            | TokenPC
-           | TokenSuma
-           | TokenResta
-           | TokenMult
-           | TokenDiv
-           | TokenAdd
-           | TokenSub
+           | TokenSuma String
            deriving(Show)
 
 lexer :: String -> [Token]
@@ -70,12 +59,7 @@ lexer [] = []
 lexer (' ' : xs) = lexer xs
 lexer ('(' : xs) = TokenPA:(lexer xs)
 lexer (')' : xs) = TokenPC:(lexer xs)
-lexer ('+' : xs) = TokenSuma:(lexer xs)
-lexer ('-' : xs) = TokenResta:(lexer xs)
-lexer ('*' : xs) = TokenMult:(lexer xs)
-lexer ('/' : xs) = TokenDiv:(lexer xs)
-lexer ('a' : xs) = TokenAdd:(lexer xs)
-lexer ('s' : xs) = TokenSub:(lexer xs)
+--lexer ('+' : xs) = TokenSuma:(lexer xs)
 lexer (x:xs)
     | isDigit x = lexNum (x:xs)
 
