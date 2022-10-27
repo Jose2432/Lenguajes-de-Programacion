@@ -8,46 +8,40 @@ data Value = NumV Int
 instance Show Value where
     show (NumV n) = show n
     show (BoolV b) = show b
-
+    
 interp :: ASA -> Value
-interp (Num(a)) = NumV(a)
-interp (Boolean(a)) = BoolV(a)
-interp (Op "+" [Num(a),Num(b)] ) = NumV(a+b)
-interp (Op "-" [Num(a),Num(b)] ) = NumV(a-b)
-interp (Op "*" [Num(a),Num(b)] ) = NumV(a*b)
-interp (Op "/" [Num(a),Num(b)] ) =
-  if b==0
-    then error "Error. No puedes dividir entre cero(0)"
-    else NumV(div a b)
+interp (Num n) = NumV n
+interp (Boolean b) = BoolV b
+interp (Op s l) = aplica s (map interp l)
 
-interp (Op "add1" [Num(a)] ) = NumV(a+1)
-interp (Op "sub1" [Num(a)] ) = NumV(a-1)
-interp (Op ">" [Num(a),Num(b)] ) =
-  if a>b
-    then BoolV(True)
-    else BoolV(False)
+aplica :: String -> [Value] -> Value
+aplica "+" l = NumV (foldr1 (+) (map extraeI l))
+aplica "-" l = NumV (foldr1 (-) (map extraeI l))
+aplica "*" l = NumV (foldr1 (*) (map extraeI l))
+aplica "/" l = NumV (division (map extraeI l))
+aplica "<" l = BoolV (multiparam "<" (map extraeI l))
+aplica ">" l = BoolV (multiparam ">" (map extraeI l))
+aplica "=" l = BoolV (multiparam "=" (map extraeI l))
+aplica "and" l = BoolV (foldr1 (&&) (map extraeB l))
+aplica "or" l = BoolV (foldr1 (||) (map extraeB l))
+aplica "add1" [x] = NumV ((extraeI x) + 1)
+aplica "sub1" [x] = NumV ((extraeI x) - 1)
+aplica "not" [x] =  if (extraeB x) then (BoolV False) else (BoolV True)
 
-interp (Op "<" [Num(a),Num(b)] ) =
-  if a<b
-    then BoolV(True)
-    else BoolV(False)
+multiparam :: String  -> [Int] -> Bool
+multiparam _ [] = True
+multiparam _ [x] = True
+multiparam "<" (x:y:xs) = (x < y) && (multiparam "<" (y:xs))
+multiparam ">" (x:y:xs) = (x > y) && (multiparam ">" (y:xs))
+multiparam "=" (x:y:xs) = (x == y) && (multiparam "==" (y:xs))
 
-interp (Op "=" [Num(a),Num(b)] ) =
-  if a==b
-    then BoolV(True)
-    else BoolV(False)
+division :: [Int] -> Int
+division [x] = x
+division (x:y:xs) = if y == 0 then error "No puedes dividir entre cero." else (division (c:xs))
+    where c = div x y
 
-interp (Op "not" [Boolean(a)] ) =
-  if a==False
-    then BoolV(True)
-    else BoolV(False)
+extraeI :: Value -> Int
+extraeI (NumV n) = n
 
-interp (Op "or" [Boolean(a),Boolean(b)] ) =
-  if a==False && b==False
-    then BoolV(False)
-    else BoolV(True)
-
-interp (Op "and" [Boolean(a),Boolean(b)] ) =
-  if a==True && b==True
-    then BoolV(True)
-    else BoolV(False)
+extraeB :: Value -> Bool
+extraeB (BoolV b) = b
